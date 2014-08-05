@@ -6,6 +6,7 @@ import com.datastax.driver.core.Session
 import com.datastax.driver.core.exceptions.AlreadyExistsException
 
 class CassandraMigrator(registry: Registry) extends Migrator {
+
   override def migrate(session: Session, dateRestriction: Option[Date] = None) {
     val appliedMigrations = AppliedMigrations(session, registry)
     selectMigrationsToReverse(dateRestriction, appliedMigrations).foreach(_.executeDownStatement(session))
@@ -27,14 +28,16 @@ class CassandraMigrator(registry: Registry) extends Migrator {
   }
 
   override def destroy(session: Session, keyspace: String) {
+    println(s"Dropping keyspace $keyspace")
     session.execute("DROP KEYSPACE %s".format(keyspace))
   }
 
   private def executeIdempotentCommand(session: Session, statement: String) {
     try {
+      println(s"Executing statement $statement")
       session.execute(statement)
     } catch {
-      case _: AlreadyExistsException =>
+      case e: AlreadyExistsException => println("Got exception: " + e)
     }
   }
 

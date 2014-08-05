@@ -5,6 +5,7 @@ import com.datastax.driver.core.Session
 import com.datastax.driver.core.querybuilder.QueryBuilder
 
 object Migration {
+
   def apply(description: String, authoredAt: Date, up: String): Migration = {
     new IrreversibleMigration(description, authoredAt, up)
   }
@@ -35,6 +36,7 @@ trait Migration {
   }
 
   def executeUpStatement(session: Session) {
+    println(s"Executing up migration '$description' with statement $up")
     session.execute(up)
     insertIntoAppliedMigrations(session)
   }
@@ -51,6 +53,7 @@ trait Migration {
   }
 
   private def insertIntoAppliedMigrations(session: Session) {
+    println(s"Inserting up migration '$description' into applied_migrations")
     session.execute(QueryBuilder.
       insertInto("applied_migrations").
       value("authored_at", authoredAt).
